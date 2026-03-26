@@ -2,10 +2,10 @@
 
 Send notifications to multiple services from a single API using Apprise-compatible URLs.
 
-[![npm version](https://img.shields.io/npm/v/notifly)](https://www.npmjs.com/package/notifly)
-[![CI](https://img.shields.io/github/actions/workflow/status/YOUR_USERNAME/notifly/ci.yml?branch=main&label=CI)](https://github.com/YOUR_USERNAME/notifly/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/notifly)](https://bundlephobia.com/package/notifly)
+[![npm version](https://img.shields.io/npm/v/@ambersecurityinc/notifly)](https://www.npmjs.com/package/@ambersecurityinc%2fnotifly)
+[![CI](https://github.com/ambersecurityinc/notifly/actions/workflows/ci.yml/badge.svg)](https://github.com/ambersecurityinc/notifly/actions)
+[![License: MIT](https://img.shields.io/npm/l/@ambersecurityinc/notifly)](LICENSE)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@ambersecurityinc/notifly)](https://bundlephobia.com/package/@ambersecurityinc%2fnotifly)
 
 ## Features
 
@@ -18,13 +18,13 @@ Send notifications to multiple services from a single API using Apprise-compatib
 ## Install
 
 ```sh
-npm install notifly
+npm install @ambersecurityinc/notifly
 ```
 
 ## Quick Start
 
 ```ts
-import { notify } from 'notifly';
+import { notify } from '@ambersecurityinc/notifly';
 
 const results = await notify(
   {
@@ -62,8 +62,8 @@ console.log(results);
 ## Custom Services
 
 ```ts
-import { registerService } from 'notifly';
-import type { ServiceDefinition, ServiceConfig, NotiflyMessage } from 'notifly';
+import { registerService } from '@ambersecurityinc/notifly';
+import type { ServiceDefinition, ServiceConfig, NotiflyMessage } from '@ambersecurityinc/notifly';
 
 const myService: ServiceDefinition = {
   schemas: ['myscheme'],
@@ -188,7 +188,7 @@ const results = await notify({ urls: ['discord://bad/token'] }, { body: 'test' }
 `parseUrl()` throws `ParseError` for invalid or unknown URLs:
 
 ```ts
-import { parseUrl, ParseError } from 'notifly';
+import { parseUrl, ParseError } from '@ambersecurityinc/notifly';
 
 try {
   parseUrl('not-a-url');
@@ -221,18 +221,18 @@ This project uses a two-workflow setup for npm publishing.
 
 **First publish** is done via `first-publish.yml` using a granular npm access token:
 
-1. Create a granular npm token scoped to the `notifly` package (read-write access)
+1. Create a granular npm token scoped to the `@ambersecurityinc/notifly` package (read-write access)
 2. Add it as `NPM_TOKEN` in your GitHub repo → Settings → Secrets → Actions
 3. Go to Actions tab → "First Publish" → "Run workflow"
-4. Verify the package appears at https://www.npmjs.com/package/notifly
+4. Verify the package appears at https://www.npmjs.com/package/@ambersecurityinc%2fnotifly
 
 ### Ongoing Releases (OIDC Trusted Publishing)
 
 After the first publish, switch to keyless publishing via OIDC:
 
-1. Go to https://www.npmjs.com/package/notifly/access
+1. Go to https://www.npmjs.com/package/@ambersecurityinc%2fnotifly/access
 2. Under "Trusted Publisher", select **GitHub Actions**
-3. Fill in: your GitHub org/user, repository name (`notifly`), workflow filename (`release.yml`)
+3. Fill in: org `ambersecurityinc`, repository `notifly`, workflow filename `release.yml`
 4. Enable "Require two-factor authentication and disallow tokens" (recommended)
 5. In your GitHub repo: disable `first-publish.yml` and delete the `NPM_TOKEN` secret
 

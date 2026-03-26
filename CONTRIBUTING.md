@@ -6,7 +6,7 @@ Thank you for your interest in contributing to notifly!
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/notifly.git
+   git clone https://github.com/ambersecurityinc/notifly.git
    cd notifly
    ```
 

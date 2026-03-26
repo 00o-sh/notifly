@@ -1,5 +1,5 @@
 {
-  "name": "notifly",
+  "name": "@ambersecurityinc/notifly",
   "version": "0.1.0",
   "description": "Send notifications to multiple services from a single API using Apprise-compatible URLs",
   "type": "module",
@@ -38,7 +38,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/notifly"
+    "url": "git+https://github.com/ambersecurityinc/notifly.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.2",
