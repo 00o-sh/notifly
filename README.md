@@ -106,6 +106,51 @@ if (errors.length === 0) {
 }
 ```
 
+### Smart URL Paste
+
+Users can paste the raw webhook URL they copied from a service's settings page — no manual conversion needed:
+
+```ts
+import { smartParse } from '@ambersecurityinc/notifly/builder';
+
+// User pastes their raw Discord webhook URL
+const result = smartParse('https://discord.com/api/webhooks/1234567890/abcdefghijklmnop');
+// → { service: 'discord', notiflyUrl: 'discord://1234567890/abcdefghijklmnop',
+//     fields: { webhook_id: '1234567890', webhook_token: 'abcdefghijklmnop' } }
+
+// Also works with existing notifly URLs
+const result2 = smartParse('discord://1234567890/abcdefghijklmnop');
+// → { service: 'discord', notiflyUrl: 'discord://1234567890/abcdefghijklmnop',
+//     fields: { webhook_id: '1234567890', webhook_token: 'abcdefghijklmnop' } }
+
+// Unknown URLs return null
+const result3 = smartParse('https://example.com/unknown');
+// → null
+```
+
+`smartParse` tries `detectAndConvert` first (for raw provider URLs), then falls back to `decomposeUrl` (for existing Apprise URLs). You can also use each individually:
+
+```ts
+import { detectAndConvert, isRawServiceUrl } from '@ambersecurityinc/notifly/builder';
+
+// Check if a pasted string is a raw provider URL before processing
+if (isRawServiceUrl(input)) {
+  const converted = detectAndConvert(input);
+  // converted?.notiflyUrl — the notifly URL to store
+}
+```
+
+**Detection patterns supported:**
+
+| Raw URL pattern | Detected as |
+|---|---|
+| `https://discord.com/api/webhooks/{id}/{token}` | `discord` |
+| `https://hooks.slack.com/services/{a}/{b}/{c}` | `slack` |
+| `https://*.webhook.office.com/webhookb2/.../IncomingWebhook/...` | `msteams` |
+| `https://api.telegram.org/bot{token}/...` | `telegram` (chat_id left empty) |
+| `https://ntfy.sh/{topic}` | `ntfy` |
+| `https://{host}/message?token={token}` | `gotify` |
+
 ### Editing Existing URLs
 
 ```ts

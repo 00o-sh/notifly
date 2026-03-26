@@ -2,6 +2,12 @@ import { SERVICE_SCHEMAS } from './schemas.js';
 import { validateFields as _validateFields } from './validate.js';
 import { buildUrl as _buildUrl } from './url-builder.js';
 import { decomposeUrl as _decomposeUrl } from './url-decomposer.js';
+import {
+  detectAndConvert as _detectAndConvert,
+  isRawServiceUrl as _isRawServiceUrl,
+  smartParse as _smartParse,
+} from './url-detector.js';
+import type { DetectResult } from './url-detector.js';
 import type {
   ServiceSchema,
   ServiceCategory,
@@ -25,6 +31,7 @@ export type {
   ValidationError,
   BuildUrlResult,
   DecomposeResult,
+  DetectResult,
 };
 
 /**
@@ -120,4 +127,35 @@ export function buildUrl(
  */
 export function decomposeUrl(url: string): DecomposeResult {
   return _decomposeUrl(url);
+}
+
+/**
+ * Detect a known service from a raw provider URL (the kind you copy from Discord settings,
+ * Slack app config, etc.) and convert it to a notifly Apprise URL.
+ *
+ * Returns null if the URL does not match any known pattern.
+ * For Apprise-format URLs (discord://, slack://, etc.) use decomposeUrl() or smartParse().
+ */
+export function detectAndConvert(rawUrl: string): DetectResult | null {
+  return _detectAndConvert(rawUrl);
+}
+
+/**
+ * Returns true if the string looks like a raw service provider URL (http/https)
+ * rather than an Apprise-format notifly URL (custom scheme like discord://).
+ */
+export function isRawServiceUrl(input: string): boolean {
+  return _isRawServiceUrl(input);
+}
+
+/**
+ * Parse any URL string — either a raw provider URL or an existing Apprise/notifly URL —
+ * and return a normalised result. This is the "paste anything" function for UIs.
+ *
+ * - Pastes like https://discord.com/api/webhooks/123/abc → detected and converted
+ * - Pastes like discord://123/abc → decomposed from Apprise format
+ * - Unknown URLs → null
+ */
+export function smartParse(input: string): DetectResult | null {
+  return _smartParse(input);
 }
