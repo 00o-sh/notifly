@@ -51,13 +51,116 @@ console.log(results);
 
 ## Supported Services
 
-| Service  | URL Scheme | Example URL                                  |
-|----------|------------|----------------------------------------------|
-| Discord  | `discord`  | `discord://webhook_id/webhook_token`         |
-| Slack    | `slack`    | `slack://token_a/token_b/token_c/%23channel` |
-| Telegram | `tgram`    | `tgram://bot_token/chat_id`                  |
-| ntfy     | `ntfy`     | `ntfy://topic` or `ntfy://host/topic`        |
-| Gotify   | `gotify`   | `gotify://host/token`                        |
+| Service            | URL Scheme(s)               | Example URL                                                                  |
+|--------------------|-----------------------------|------------------------------------------------------------------------------|
+| Discord            | `discord`                   | `discord://webhook_id/webhook_token`                                         |
+| Slack              | `slack`                     | `slack://token_a/token_b/token_c/%23channel`                                 |
+| Telegram           | `tgram`                     | `tgram://bot_token/chat_id`                                                  |
+| ntfy               | `ntfy`                      | `ntfy://topic` or `ntfy://host/topic`                                        |
+| Gotify             | `gotify`                    | `gotify://host/token`                                                        |
+| Email (via gateway)| `mailto`                    | `mailto://user:apikey@host/?to=addr@example.com&gateway=resend`              |
+| Microsoft Teams    | `msteams`, `teams`          | `msteams://group_id@tenant_id/channel_id/webhook_id`                         |
+| Pushover           | `pover`                     | `pover://user_key/api_token` or `pover://user_key/api_token/device`          |
+| Pushbullet         | `pbul`                      | `pbul://access_token` or `pbul://access_token/device_id`                     |
+| Custom Webhook     | `json`, `jsons`, `form`, `forms` | `jsons://example.com/hook` or `forms://example.com/hook?method=PUT`     |
+
+## URL Builder
+
+A headless, framework-agnostic URL builder module ships as a separate subpath export. It provides service schemas, field definitions, validation, and URL generation — the logic layer for building notification URL configuration UIs without coupling to any framework.
+
+### Import
+
+```ts
+import {
+  getServiceSchemas,
+  getServiceSchema,
+  searchServices,
+  getServicesByCategory,
+  getCategories,
+  validateFields,
+  buildUrl,
+  decomposeUrl,
+} from '@ambersecurityinc/notifly/builder';
+```
+
+### 3-Step Form Flow
+
+```ts
+import { searchServices, validateFields, buildUrl } from '@ambersecurityinc/notifly/builder';
+
+// Step 1 — Search and select a service
+const results = searchServices('discord');
+const schema = results[0]; // { service: 'discord', label: 'Discord', fields: [...], ... }
+
+// Step 2 — Render a form using schema.fields, collect user input
+const userInput = {
+  webhook_id: '1234567890',
+  webhook_token: 'abcdefghijklmnop',
+};
+
+// Step 3 — Validate and generate the URL
+const errors = validateFields('discord', userInput);
+if (errors.length === 0) {
+  const { url } = buildUrl('discord', userInput);
+  console.log(url); // discord://1234567890/abcdefghijklmnop
+}
+```
+
+### Editing Existing URLs
+
+```ts
+import { decomposeUrl, buildUrl } from '@ambersecurityinc/notifly/builder';
+
+// Load an existing URL into field values (for editing)
+const { service, fields } = decomposeUrl('discord://1234567890/abcdefghijklmnop');
+// { service: 'discord', fields: { webhook_id: '1234567890', webhook_token: 'abcdefghijklmnop' } }
+
+// Modify a field and rebuild
+const { url } = buildUrl(service, { ...fields, webhook_token: 'newtoken' });
+```
+
+### Browsing by Category
+
+```ts
+import { getCategories, getServicesByCategory } from '@ambersecurityinc/notifly/builder';
+
+const categories = getCategories();
+// [{ key: 'chat', label: 'Chat & Messaging', count: 4 }, ...]
+
+const chatServices = getServicesByCategory('chat');
+// schemas for Discord, Slack, Telegram, Microsoft Teams
+```
+
+### Service Schema Shape
+
+Each schema describes all fields a user needs to fill in:
+
+```ts
+interface ServiceSchema {
+  service: string;      // registry key, e.g. 'discord'
+  label: string;        // display name
+  description: string;  // one-liner
+  schemes: string[];    // URL schemes, e.g. ['discord']
+  category: 'chat' | 'push' | 'email' | 'webhook' | 'self-hosted';
+  iconHint: string;     // icon name hint for your UI
+  fields: ServiceField[];
+}
+
+interface ServiceField {
+  key: string;
+  label: string;
+  type: 'text' | 'number' | 'select' | 'boolean';
+  required: boolean;
+  sensitive: boolean;   // true for tokens/passwords — UI should mask these
+  placeholder?: string;
+  helpText?: string;    // where to find the value (very useful for users)
+  defaultValue?: string | number | boolean;
+  options?: { label: string; value: string }[];  // for 'select' type
+  validation?: { pattern?: string; minLength?: number; maxLength?: number };
+}
+```
+
+This module is entirely framework-agnostic — bring your own UI (React, Vue, Svelte, plain HTML, etc.).
 
 ## Custom Services
 
@@ -175,6 +278,64 @@ ntfy://your-host.com/topic    # self-hosted
 ```
 gotify://your-host.com/app_token
 ```
+
+### Email (via HTTP gateway)
+
+Raw SMTP requires TCP sockets not available in Web API environments. Use an HTTP gateway instead:
+
+```
+# MailChannels (free on Cloudflare Workers)
+mailto://user@host/?to=recipient@example.com&gateway=mailchannels
+
+# Resend (free tier — password is your API key)
+mailto://user:re_apikey@host/?to=recipient@example.com&gateway=resend
+```
+
+Optional query params: `from`, `cc`, `bcc`.
+
+### Microsoft Teams
+
+Tokens come from the Teams webhook URL:
+`https://outlook.webhook.office.com/webhookb2/{group_id}@{tenant_id}/IncomingWebhook/{channel_id}/{webhook_id}`
+
+```
+msteams://group_id@tenant_id/channel_id/webhook_id
+```
+
+Also registered as `teams://` alias.
+
+### Pushover
+
+```
+pover://user_key/api_token           # send to all devices
+pover://user_key/api_token/device    # send to a specific device
+```
+
+Message `type` maps to Pushover priority: `info`/`success`=0, `warning`=1, `failure`=2.
+
+### Pushbullet
+
+```
+pbul://access_token                  # push to all devices
+pbul://access_token/device_iden      # push to specific device
+pbul://access_token/%23channel_tag   # push to a channel
+```
+
+### Custom Webhook
+
+```
+json://host/path    # HTTP POST with JSON body
+jsons://host/path   # HTTPS POST with JSON body
+form://host/path    # HTTP POST with form-encoded body
+forms://host/path   # HTTPS POST with form-encoded body
+```
+
+Default JSON body: `{ "title": "...", "body": "...", "type": "..." }`
+
+Query parameter prefixes for customisation:
+- `?+HeaderName=value` — add a custom request header
+- `?-fieldname=value` — add/override a body field
+- `?method=PUT` — override the HTTP method (default: POST)
 
 ## Error Handling
 
