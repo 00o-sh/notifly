@@ -4,6 +4,11 @@ import { slackService } from './slack.js';
 import { telegramService } from './telegram.js';
 import { ntfyService } from './ntfy.js';
 import { gotifyService } from './gotify.js';
+import { emailService } from './email.js';
+import { msteamsService } from './msteams.js';
+import { pushoverService } from './pushover.js';
+import { pushbulletService } from './pushbullet.js';
+import { webhookService } from './webhook.js';
 
 const registry = new Map<string, ServiceDefinition>();
 
@@ -23,5 +28,10 @@ registerService(slackService);
 registerService(telegramService);
 registerService(ntfyService);
 registerService(gotifyService);
+registerService(emailService);
+registerService(msteamsService);
+registerService(pushoverService);
+registerService(pushbulletService);
+registerService(webhookService);
 
 export { registerService, getService, registry };
